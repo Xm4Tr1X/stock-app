@@ -4,16 +4,25 @@ var Stocks = function () {
     var names;
     var date;
     var cssClass;
-    function getDom() {
+    function init() {
         $tbody = $('#myTable').find('tbody');
         names = [];
         existingData = [[]];
     }
 
-    function setData(args) {
+
+    function setData(index, element, updateTime, cssClass) {
+        existingData[index][0] = element[0];
+        existingData[index][1] = element[1];
+        existingData[index][2] = updateTime;
+        existingData[index][3] = cssClass;
+        existingData[index][4] = new Date;
+    }
+    function getData(args) {
         var jsonData = JSON.parse(args);
         //existingData = jsonData;
         let prevValue;
+        let updateTime;
         let cssClass = '';
         for (let i = 0; i < jsonData.length; i++) {
             const element = jsonData[i];
@@ -23,18 +32,19 @@ var Stocks = function () {
                 cssClass = 'white';
             } else {
                 prevValue = existingData[index][1];
-                if (prevValue < element[1]) {
-                    cssClass = 'red';
-                } else {
-                    cssClass = 'green';
-                }
             }
-            date = new Date;
             existingData[index] = [];
-            existingData[index][0] = element[0];
-            existingData[index][1] = element[1];
-            existingData[index][2] = date.toLocaleTimeString();
-            existingData[index][3] = cssClass;
+            if (prevValue < element[1]) {
+                cssClass = 'green';
+            } else {
+                cssClass = 'red';
+            }
+            if (existingData[index][0] === element[0]) {
+                updateTime = moment().fromNow();
+            } else {
+                updateTime = moment(existingData[index][4]).fromNow();
+            }
+            setData(index, element, updateTime, cssClass);
         }
         _render();
     }
@@ -45,17 +55,17 @@ var Stocks = function () {
             $tbody.append('<tr>');
             $tbody.append('<td>' + element[0] + '</td>');
             $tbody.append('<td class="' + element[3] + '">' + element[1] + '</td>');
-            $tbody.append('<td>' + date.toLocaleTimeString() + '</td>');
+            $tbody.append('<td>' + element[2] + '</td>');
             $tbody.append('</tr>')
         });
     }
     return {
         init: function () {
-            getDom();
+            init();
             Websocket.init();
         },
-        setData: function (args) {
-            setData(args);
+        getData: function (args) {
+            getData(args);
         }
     };
 }();
