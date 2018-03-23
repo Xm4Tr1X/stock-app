@@ -10,9 +10,14 @@ var Websocket = function () {
 
     stockWebSocket.onclose = function () {
         console.error('Websocket Connection Terminated');
+        connect();
     }
     stockWebSocket.onmessage = function (event) {
-        Stocks.setData(event.data);
+        Stocks.getData(event.data);
+    }
+    stockWebSocket.onerror = function(err){
+        console.log('Error occured in websocket connection' + err);
+        connect();
     }
     return {
         init: function () {
